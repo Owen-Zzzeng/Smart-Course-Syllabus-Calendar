@@ -1,0 +1,137 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum EventType {
+  EXAM
+  ASSIGNMENT
+  QUIZ
+  PROJECT
+  READING
+  OTHER
+}
+
+enum Confidence {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum SyllabusStatus {
+  UPLOADED
+  PARSED
+  EXTRACTED
+  FAILED
+}
+
+model User {
+  id        String     @id @default(cuid())
+  email     String     @unique
+  name      String?
+  createdAt DateTime   @default(now())
+  semesters Semester[]
+
+  @@map("users")
+}
+
+model Semester {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  startDate DateTime @db.Date
+  endDate   DateTime @db.Date
+  createdAt DateTime @default(now())
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courses   Course[]
+  syllabi   Syllabus[]
+
+  @@index([userId])
+  @@map("semesters")
+}
+
+model Course {
+  id         String   @id @default(cuid())
+  semesterId String
+  name       String
+  courseCode String?
+  instructor String?
+  /// Hex color assigned deterministically from a fixed accessible palette.
+  color      String
+  createdAt  DateTime @default(now())
+
+  semester   Semester           @relation(fields: [semesterId], references: [id], onDelete: Cascade)
+  events     Event[]
+  components GradingComponent[]
+  syllabus   Syllabus?
+
+  @@index([semesterId])
+  @@map("courses")
+}
+
+model GradingComponent {
+  id       String @id @default(cuid())
+  courseId String
+  name     String
+  /// Percentage of the final grade, 0-100.
+  weight   Float
+
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@index([courseId])
+  @@map("grading_components")
+}
+
+model Event {
+  id       String    @id @default(cuid())
+  courseId String
+  title    String
+  type     EventType @default(OTHER)
+
+  /// Null when the source text was too vague to resolve to a calendar date.
+  date        DateTime?  @db.Date
+  /// Verbatim source text, e.g. "Week 8" or "October 15th". Never overwritten.
+  rawDateText String?
+  confidence  Confidence @default(LOW)
+  needsReview Boolean    @default(true)
+  /// True once a human has explicitly accepted or corrected this row.
+  confirmed   Boolean    @default(false)
+  description String?
+  gradeWeight Float?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@index([courseId])
+  @@index([date])
+  @@map("events")
+}
+
+/// Raw ingestion record. Kept so extraction can be re-run or audited without
+/// asking the user to re-upload the original document.
+model Syllabus {
+  id          String         @id @default(cuid())
+  semesterId  String
+  courseId    String?        @unique
+  fileName    String
+  mimeType    String
+  status      SyllabusStatus @default(UPLOADED)
+  /// Full text pulled out of the PDF/DOCX before the LLM ever sees it.
+  rawText     String?
+  /// True when the PDF yielded too little text and OCR would be required.
+  likelyScanned Boolean      @default(false)
+  error       String?
+  createdAt   DateTime       @default(now())
+
+  semester Semester @relation(fields: [semesterId], references: [id], onDelete: Cascade)
+  course   Course?  @relation(fields: [courseId], references: [id], onDelete: SetNull)
+
+  @@index([semesterId])
+  @@map("syllabi")
+}
