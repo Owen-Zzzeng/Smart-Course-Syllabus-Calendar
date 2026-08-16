@@ -1,0 +1,35 @@
+CS 348 — Introduction to Database Management
+Fall 2026 Course Syllabus
+
+Instructor: Dr. Ada Lovelace
+Email: alovelace@university.edu
+Office Hours: Tuesdays 2-4pm, DC 3512
+
+Course Description
+This course introduces the fundamentals of database management systems,
+including the relational model, SQL, schema design, and transactions.
+
+Grading Breakdown
+Assignments: 40%
+Midterm Exam: 25%
+Final Exam: 30%
+Participation: 5%
+
+Course Schedule
+
+Assignment 1 due September 25, 2026
+Quiz 1 in class on October 2, 2026
+Assignment 2 due October 16, 2026
+Midterm Exam — October 22, 2026, covers chapters 1-6 (25%)
+Assignment 3 due November 6, 2026
+Project Milestone — around Week 10
+Quiz 2 in class on November 20, 2026
+Final Project presentation due December 4, 2026
+Term Paper due date TBD
+Final Exam — scheduled by the registrar, December 14, 2026
+
+Readings
+Chapter 3 reading due September 18, 2026
+
+Policies
+Late assignments lose 10% per day. Academic integrity rules apply.
